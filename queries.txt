@@ -1,0 +1,100 @@
+{
+user { widgets {
+  edges {
+    node {
+      id
+      ...WidgetFragment
+    }
+  }
+} }
+}
+
+fragment WidgetFragment on Widget {
+  name
+	color
+}
+
+
+{
+	__typename
+	user {
+  	__typename
+  	widgets {
+  		__typename
+  		edges {
+    		__typename
+    		node {
+      		__typename
+      		id
+      		...WidgetFragment
+  			}
+    	}
+  	}
+	}
+}
+
+fragment WidgetFragment on Widget {
+  name
+	color
+}
+
+query WidgetRefetchQuery {
+  __typename
+  node(id: "V2lkZ2V0OjU2ZDcxZDZlZmUwOGYzMzUwM2FhZmM5Nw==") {
+    __typename
+    id
+
+  }
+}
+
+//var query = `{ widget(id:"56449b2249d09d4b29253c7a") { name, color, size } }`;
+// var query = `{ viewer(color:"red") { name, color, size } }`;
+//
+// fetch(`/graphql?query=${encodeURIComponent(query)}`).then((response) => {
+// 	response.json().then(function(result) {
+// 		console.dir(result);
+// 	});
+// }).catch((err) => {
+// 	console.error(err);
+// });
+
+
+{
+  node(id:"V2lkZ2V0OjU2ZDcxZDZlZmUwOGYzMzUwM2FhZmM5Nw==") {
+    id
+    ... on Widget {
+      color
+      size
+      quantity
+    }
+  }
+}
+
+mutation{saveWidget(
+  widget: {
+    id: "V2lkZ2V0OjU2ZDcxZDZlZmUwOGYzMzUwM2FhZmM5Nw=="
+    name: "Update Widget"
+    description: "Update Widget Desc"
+    color:"red"
+    size:"small"
+    quantity: 1
+  }
+) {
+  ... on Widget {
+    id
+    name
+    description
+    color
+    size
+    quantity
+  }
+}}
+
+
+mutation{deleteWidget(widgetId: "V2lkZ2V0OjU2NDQ5YjIyNDlkMDlkNGIyOTI1M2M3YQ==") {
+  ... on Widget {
+    id
+    color
+    size
+  }
+}}
