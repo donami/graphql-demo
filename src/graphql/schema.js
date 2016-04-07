@@ -4,7 +4,9 @@ import {
 	GraphQLSchema, GraphQLObjectType, GraphQLString, GraphQLInt, GraphQLList,
 	GraphQLID, GraphQLNonNull, GraphQLInputObjectType
 } from 'graphql';
-import { globalIdField, nodeDefinitions, fromGlobalId, connectionDefinitions, connectionArgs, connectionFromPromisedArray } from "graphql-relay";
+import {
+	globalIdField, nodeDefinitions, fromGlobalId, connectionDefinitions,
+	connectionArgs, connectionFromPromisedArray, mutationWithClientMutationId } from "graphql-relay";
 import { getUser, getWidget, getWidgets } from "../database";
 import User from "../models/user";
 import Widget from "../models/widget";
@@ -88,9 +90,9 @@ const queryType = new GraphQLObjectType({
 	})
 });
 
-var inputWidgetType = new GraphQLInputObjectType({
-	name: 'InputWidget',
-	description: "A widget object",
+var widgetTypeInput = new GraphQLInputObjectType({
+	name: 'WidgetInput',
+	description: "An input widget object",
 	fields: () => ({
 		id: globalIdField('Widget'),
 		name: {
@@ -124,30 +126,35 @@ var mutationType = new GraphQLObjectType({
 			type: widgetType,
 			// args
 			args: {
-				widgetId: globalIdField('Widget')
+				input: globalIdField('Widget')
 			},
-			resolve: (obj, {widgetId}) => {
-				var {type, id} = fromGlobalId(widgetId);
+			resolve: (obj, {input}) => {
+				var {type, id} = fromGlobalId(input);
 				console.log("type", type);
 				console.log("id", id);
 				return new Widget({ id: id });
 			}
 		},
-		saveWidget: {
-		  type: widgetType,
-		  args: {
-		    widget: {
-		      description: 'The widget',
-		      type: new GraphQLNonNull(inputWidgetType)
-		    }
-		  },
-		  resolve: (obj, {widget}) => {
-				var {type, id} = fromGlobalId(widget.id);
-				console.log("type",  type);
-				console.log("id",  id);
-				return new Widget(widget);
-		  }
-		}
+		saveWidget: mutationWithClientMutationId({
+			name: 'SaveWidget',
+			inputFields: {
+				widget: { type: new GraphQLNonNull(widgetTypeInput) }
+			},
+			outputFields: {
+				widget: {
+					type: widgetType,
+					resolve: ({widget}) => {
+						var {type, id} = fromGlobalId(widget.id);
+						return new Widget(widget);
+				  }
+				}
+			},
+			mutateAndGetPayload: ({widget}) => {
+				var widgetId = fromGlobalId(widget.id).id;
+				// async operation to save
+				return {widget};
+			}
+		})
   })
 });
 

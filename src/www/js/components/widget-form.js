@@ -4,6 +4,8 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import Relay from 'react-relay';
 
+import SaveWidgetMutation from '../mutations/save-widget-mutation';
+
 class WidgetForm extends React.Component {
 
 	constructor(props) {
@@ -22,7 +24,14 @@ class WidgetForm extends React.Component {
 	}
 
 	onClick() {
-		this.relay.
+		Relay.Store.commitUpdate(new SaveWidgetMutation({ widget: {
+			id: this.state.widget.id,
+			name: this.state.widget.name,
+			description: this.state.widget.description,
+			color: this.state.widget.color,
+			size: this.state.widget.size,
+			quantity: this.state.widget.quantity, 
+		} }));
 		console.dir(this.state.widget);
 	}
 
@@ -78,7 +87,8 @@ export default Relay.createContainer(WidgetForm, {
 				description,
 				color,
 				size,
-				quantity
+				quantity,
+				${SaveWidgetMutation.getFragment('widget')}
 			}
     `,
   },

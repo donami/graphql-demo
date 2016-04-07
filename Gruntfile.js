@@ -5,7 +5,7 @@ module.exports = function(grunt) {
 	grunt.initConfig({
 		webServer: {
 			folder: "dist/www",
-			port: 8181
+			port: 8080
 		},
 		mongoServer: {
 			host: "localhost",
