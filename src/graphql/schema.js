@@ -7,7 +7,7 @@ import {
 import {
 	globalIdField, nodeDefinitions, fromGlobalId, connectionDefinitions,
 	connectionArgs, connectionFromPromisedArray, mutationWithClientMutationId } from "graphql-relay";
-import { getUser, getWidget, getWidgets } from "../database";
+import { getUser, getWidget, getWidgets, updateWidget } from "../database";
 import User from "../models/user";
 import Widget from "../models/widget";
 
@@ -92,11 +92,14 @@ const queryType = new GraphQLObjectType({
 
 var widgetTypeInput = new GraphQLInputObjectType({
 	name: 'WidgetInput',
-	description: "An input widget object",
+	description: "An update input widget object",
 	fields: () => ({
-		id: globalIdField('Widget'),
+		id: {
+			type: GraphQLID,
+			description: "The id of a widget",
+		},
 		name: {
-			type: new GraphQLNonNull(GraphQLString),
+			type: GraphQLString,
 			description: "The name of a widget",
 		},
 		description: {
@@ -116,46 +119,34 @@ var widgetTypeInput = new GraphQLInputObjectType({
 			description: "The quantity of a widget"
 		}
 	})
-})
+});
+
+var GraphQLUpdateWidgetMutation = mutationWithClientMutationId({
+	name: 'UpdateWidget',
+	inputFields: {
+		widget: { type: widgetTypeInput }
+	},
+	outputFields: {
+		widget: {
+			type: widgetType,
+			resolve: (widget) => {
+				console.dir(widget);
+				var {type, id} = fromGlobalId(widget.id);
+				return new Widget(widget);
+			}
+		}
+	},
+	mutateAndGetPayload: ({widget}) => {
+		widget._id = fromGlobalId(widget.id).id;
+		return updateWidget(widget).catch(err => console.log(err));
+	}
+});
 
 var mutationType = new GraphQLObjectType({
   name: 'Mutation',
   fields: () => ({
-		deleteWidget: {
-			// return value
-			type: widgetType,
-			// args
-			args: {
-				input: globalIdField('Widget')
-			},
-			resolve: (obj, {input}) => {
-				var {type, id} = fromGlobalId(input);
-				console.log("type", type);
-				console.log("id", id);
-				return new Widget({ id: id });
-			}
-		},
-		saveWidget: mutationWithClientMutationId({
-			name: 'SaveWidget',
-			inputFields: {
-				widget: { type: new GraphQLNonNull(widgetTypeInput) }
-			},
-			outputFields: {
-				widget: {
-					type: widgetType,
-					resolve: ({widget}) => {
-						var {type, id} = fromGlobalId(widget.id);
-						return new Widget(widget);
-				  }
-				}
-			},
-			mutateAndGetPayload: ({widget}) => {
-				var widgetId = fromGlobalId(widget.id).id;
-				// async operation to save
-				return {widget};
-			}
-		})
-  })
+		updateWidget: GraphQLUpdateWidgetMutation
+	})
 });
 
 export const Schema = new GraphQLSchema({ query: queryType, mutation: mutationType });

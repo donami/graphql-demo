@@ -32,3 +32,14 @@ export const getWidgets = (args) => {
 		});
 	});
 };
+
+export const updateWidget = (widget) => {
+	return new Promise(function(resolve, reject) {
+		WidgetModel.findByIdAndUpdate(widget._id,
+			widget,
+			function(err) {
+				if (err) { reject(err); return; }
+				resolve(widget);
+			});
+	});
+}

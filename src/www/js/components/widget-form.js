@@ -4,35 +4,31 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import Relay from 'react-relay';
 
-import SaveWidgetMutation from '../mutations/save-widget-mutation';
+import UpdateWidgetMutation from '../mutations/update-widget-mutation';
 
 class WidgetForm extends React.Component {
 
 	constructor(props) {
 		super();
 		this.state = {
-			widget: props.node
+			widget: Object.assign({}, props.node)
 		};
 		this.onChange = this.onChange.bind(this);
 		this.onClick = this.onClick.bind(this);
 	}
 
+	_cloneWidget(newProps) {
+		return Object.assign({}, this.state.widget, newProps);
+	}
+
 	onChange(e) {
 		this.setState({
-			widget: Object.assign({}, this.state.widget, { [e.target.name]: e.target.value })
+			widget: this._cloneWidget({ [e.target.name]: e.target.value })
 		});
 	}
 
 	onClick() {
-		Relay.Store.commitUpdate(new SaveWidgetMutation({ widget: {
-			id: this.state.widget.id,
-			name: this.state.widget.name,
-			description: this.state.widget.description,
-			color: this.state.widget.color,
-			size: this.state.widget.size,
-			quantity: this.state.widget.quantity, 
-		} }));
-		console.dir(this.state.widget);
+		Relay.Store.commitUpdate(new UpdateWidgetMutation(this._cloneWidget({ widget: this.state.widget })));
 	}
 
 	render() {
@@ -77,7 +73,6 @@ class WidgetForm extends React.Component {
 	}
 }
 
-
 export default Relay.createContainer(WidgetForm, {
   fragments: {
     node: () => Relay.QL`
@@ -88,7 +83,7 @@ export default Relay.createContainer(WidgetForm, {
 				color,
 				size,
 				quantity,
-				${SaveWidgetMutation.getFragment('widget')}
+				${UpdateWidgetMutation.getFragment('widget')}
 			}
     `,
   },

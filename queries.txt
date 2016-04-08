@@ -98,3 +98,44 @@ mutation{deleteWidget(widgetId: "V2lkZ2V0OjU2NDQ5YjIyNDlkMDlkNGIyOTI1M2M3YQ==") 
     size
   }
 }}
+
+{
+	users(id: 2) {
+    __typename
+  	id
+  	...UserInfo
+ 	}
+}
+
+
+fragment UserInfo on User {
+  name
+  widgets(count: 1) {
+    id
+    ...WidgetInfo
+  }
+}
+
+fragment WidgetInfo on Widget {
+  ownerId
+  owner {
+    name
+    widgets {
+      name
+      color
+    }
+  }
+  name
+  color
+  size
+  quantity
+}
+
+mutation{insertUser(user: {
+  name: "Veebha"
+})
+ {
+    id
+    name
+ }
+}
